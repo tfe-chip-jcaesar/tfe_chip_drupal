@@ -32,7 +32,7 @@ module "us_vpc" {
   cidr_block = "10.10.0.0/16"
   vpc_name   = "us_drupal"
   tags       = local.common_tags
-  azs        = us_azs
+  azs        = local.us_azs
 
   providers = {
     aws = aws.us-west-1
@@ -50,7 +50,7 @@ module "eu_vpc" {
   cidr_block = "10.20.0.0/16"
   vpc_name   = "eu_drupal"
   tags       = local.common_tags
-  azs        = eu_azs
+  azs        = local.eu_azs
 
   providers = {
     aws = aws.eu-central-1
