@@ -18,7 +18,7 @@ locals {
   eu_az_suffixes = [for az in data.aws_availability_zones.eu_azs.names : trimprefix(az, "eu-central-1")]
   eu_azs         = slice(local.eu_az_suffixes, 0, var.num_azs > length(local.eu_az_suffixes) ? length(local.eu_az_suffixes) : var.num_azs)
 
-  common_tags = { "Owner" = "Jamie Caesar", "Company" = "Spacely Sprockets", "Application" = "Drupal2" }
+  common_tags = { "Owner" = "Jamie Caesar", "Company" = "Spacely Sprockets", "Application" = "Drupal" }
 }
 
 # -----------------------------------------------------------------------------
@@ -57,36 +57,36 @@ module "eu_vpc" {
   }
 }
 
-# # -----------------------------------------------------------------------------
-# # Admin VPC Routes (Peering defined on Admin side)
-# # -----------------------------------------------------------------------------
+# -----------------------------------------------------------------------------
+# Admin VPC Routes (Peering defined on Admin side)
+# -----------------------------------------------------------------------------
 
-# data "terraform_remote_state" "admin" {
-#   backend = "remote"
+data "terraform_remote_state" "admin" {
+  backend = "remote"
 
-#   config = {
-#     hostname     = "tfe.aws.shadowmonkey.com"
-#     organization = "spacelysprockets"
-#     workspaces = {
-#       name = "tfe_chip_admin"
-#     }
-#   }
-# }
+  config = {
+    hostname     = "tfe.aws.shadowmonkey.com"
+    organization = "spacelysprockets"
+    workspaces = {
+      name = "tfe_chip_admin"
+    }
+  }
+}
 
-# resource "aws_route" "us-admin" {
-#   provider = aws.us-west-1
-#   for_each = toset(module.us_vpc.route_tables)
+resource "aws_route" "us-admin" {
+  provider = aws.us-west-1
+  for_each = toset(module.us_vpc.route_tables)
 
-#   route_table_id            = each.value
-#   destination_cidr_block    = data.terraform_remote_state.admin.outputs.us_vpc_data.cidr
-#   vpc_peering_connection_id = "pcx-02f8c5471fd0ed026"
-# }
+  route_table_id            = each.value
+  destination_cidr_block    = data.terraform_remote_state.admin.outputs.us_vpc_data.cidr
+  vpc_peering_connection_id = data.terraform_remote_state.admin.outputs.dr_us_pcx
+}
 
-# resource "aws_route" "eu-admin" {
-#   provider = aws.eu-central-1
-#   for_each = toset(module.eu_vpc.route_tables)
+resource "aws_route" "eu-admin" {
+  provider = aws.eu-central-1
+  for_each = toset(module.eu_vpc.route_tables)
 
-#   route_table_id            = each.value
-#   destination_cidr_block    = data.terraform_remote_state.admin.outputs.eu_vpc_data.cidr
-#   vpc_peering_connection_id = "pcx-0ce1b07a53f100940"
-# }
+  route_table_id            = each.value
+  destination_cidr_block    = data.terraform_remote_state.admin.outputs.eu_vpc_data.cidr
+  vpc_peering_connection_id = data.terraform_remote_state.admin.outputs.dr_eu_pcx
+}
